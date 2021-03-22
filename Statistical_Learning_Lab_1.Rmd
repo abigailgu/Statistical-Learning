@@ -1,0 +1,137 @@
+---
+title: "Statistical_Learning_Lab_1"
+author: "Gutman Abigail & Shalom Shahar"
+date: "22 3 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# tools and data upload
+library(ggplot2)
+library(dplyr)
+library(scales)   # needed for formatting y-axis labels to non-scientific type
+library(tidyr)
+library(tidyverse)
+library(ggthemes)
+library(datasets)
+library(nycflights13)
+library(kableExtra) #table styling
+library(e1071) # kurtosis and skeeness
+library(MASS) # reg modeling
+library(corrplot)
+
+```
+
+
+```{r}
+options(scipen = 999)
+flights <- as.data.frame(nycflights13::flights)
+wheather <- nycflights13::weather
+airports <- nycflights13::airports
+planes <- nycflights13::planes
+```
+
+```{r, echo=FALSE, results='asis',fig.keep='all'}
+summary(flights)
+flights_con <- flights[,c(2:9, 11 ,15:19)]
+flights_catgory <- flights[,c(10 ,12:15)]
+
+catgory <- colnames(flights_catgory) 
+carrier <- flights_catgory %>% count(carrier)# helpful
+kable(carrier, row.names = F) %>% kable_styling()
+
+tailnum <-flights_catgory %>% count(tailnum)
+kable(tailnum, row.names = F) %>% kable_styling()
+
+origin <- flights_catgory %>% count(origin) #helpful
+kable(origin, row.names = F) %>% kable_styling()
+
+dest <- flights_catgory %>% count(dest) # need to check
+kable(dest, row.names = F) %>% kable_styling()
+
+air_time <- flights_catgory %>% count(air_time)#need to check
+kable(air_time, row.names = F) %>% kable_styling()
+
+countinuous <- colnames(flights_con)
+ggplot(data = flights_con) +
+  geom_bar(mapping = aes(x = month))  # 2 חשוד
+
+ggplot(data = flights_con) +
+  geom_bar(mapping = aes(x = day))  # 30 לחודש חשוד
+
+ggplot(data = flights, mapping = aes(x = dep_time/100)) + 
+  geom_histogram(binwidth = 0.25) # טיסות שממריאות בלילה ?
+
+ggplot(data = flights, mapping = aes(x = arr_time/100)) + 
+  geom_histogram(binwidth = 0.25)  # טיסות שמגיעות בלילה?
+
+
+ggplot(data = flights, mapping = aes(x = sched_dep_time/100)) + 
+  geom_histogram(binwidth = 0.25)
+
+ggplot(data = flights, mapping = aes(x = dep_delay)) + 
+  geom_histogram(binwidth = 1) + xlim(0,300)
+dep_delay_over <- flights %>% filter(dep_delay > 300)
+
+
+ggplot(data = flights, mapping = aes(x = arr_delay)) + 
+  geom_histogram(binwidth = 1) + xlim(0,300)
+arr_delay_over <- flights %>% filter(arr_delay > 300)
+
+
+ggplot(data = flights, mapping = aes(x = sched_arr_time/100)) + 
+  geom_histogram(binwidth = 0.25)
+
+ggplot(data = flights, mapping = aes(x = flight)) + 
+  geom_histogram(binwidth = 1) # מזהה טיסה
+
+ggplot(data = flights, mapping = aes(x = distance)) + 
+  geom_histogram(binwidth = 1) + xlim (0,2000)
+long_dist <- flights %>% filter(distance > 2000)
+
+```
+
+
+1 Graph Critique
+flight figure 1: the prcantge of delayes in departures,only obove 15 minutes,flights out of DEN airport.
+Trying to understande in which flights routes coming out of DEN, have more delyes.
+flight figure 2:
+The reltionship between number of the delyed flights to the total number of flights. 
+צריך להמשיך לזיין את השכל פה, צריך לנהל דיון קוקי
+
+
+
+
+
+2.
+```{r}
+
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r}
+
+
+```
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
