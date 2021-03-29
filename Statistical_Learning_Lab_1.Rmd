@@ -19,6 +19,8 @@ library(kableExtra) #table styling
 library(e1071) # kurtosis and skeeness
 library(MASS) # reg modeling
 library(corrplot)
+library(caTools)
+library(plotly)
 
 ```
 
@@ -101,27 +103,86 @@ The reltionship between number of the delyed flights to the total number of flig
 
 
 
+2 Reproducing these analyses
+צריך עוד לייצר פה נק מינמום מקומי אינעל העולם לא יודעת איך הוא רוצה את זה מה
+
+1. A graphic summarizing the flight volume and flights delayed, broken by day and showing weekly cycles.
+```{r fig3, fig.width = 15, fig.asp = .32}
+#EWR/ LGA/ JFK to choose
+week_cycles <- as.data.frame(flights) %>% filter(origin == 'EWR') %>% dplyr::select(time_hour ,dep_delay ,sched_dep_time)
+week_cycles$time_hour <- as.Date(week_cycles$time_hour)
+week_cycles<- week_cycles %>% mutate(delay = if_else(dep_delay <= 15 ,0,1,0))
+
+week_cycles_freq <- week_cycles %>% group_by(time_hour) %>% summarise(frequency = n())
+week_cycles_delay <- week_cycles %>% group_by(time_hour) %>% summarise(sum(delay))
+week_cycles_min <- week_cycles_freq %>% mutate(local_min = (week_cycles_freq$frequency == runmin(week_cycles_freq$frequency,length(week_cycles_freq$frequency)/2)))  
+week_cycles_min <- week_cycles_min %>% filter(local_min == T)
 
 
-2.
+ggplot(data = week_cycles_freq,aes(x = time_hour,
+                                   y= week_cycles_freq$frequency,colour = "blue")) +
+  geom_point(aes(color = "blue")) + geom_line(color = "blue") +
+  geom_point(data = week_cycles_delay,aes(x=time_hour,y= `sum(delay)`, color ='red')) +
+  geom_linerange(data = week_cycles_delay,aes(x= time_hour, ymax =`sum(delay)` ,ymin=0),color = 'red') +
+    scale_color_identity(name ="" ,breaks = c("blue","red"),
+                       labels = c("All Flights (scheculed for departure)",
+                                  "Late Flights (departure delayed >15)"),
+                          guide = "legend") +
+  theme_light()  +
+  xlab("Date")+ ylab("Flights per day") +
+  theme(legend.position="top",legend.direction = "vertical") +
+  ggtitle(label = "Weekly Cycles", subtitle = "the airport, we need to choose, Year = 2013") +
+  theme(plot.title = element_text(hjust = 0.5,size = 20),plot.subtitle = element_text(hjust = 0.5,size = 15)) 
+#need to takecare in the point of the locl minmun
+```
+
+
+
+the other graph, flight percent
 ```{r}
+dep_delay <- as.data.frame(flights) %>% filter(origin == 'EWR') %>%
+  mutate(delay = if_else(dep_delay <= 15 ,0,1,0)) %>% group_by(faa = dest) %>% summarise(amount = (frequency = n()), dep = sum(delay)) %>% mutate(per = dep/amount)
 
-
+```
+need to finish the second map
+i know how dont worryyyy
+```{r}
+dep_delay_loc <- dep_delay %>% left_join(airports, by = "faa") %>% drop_na()
+# removed : STT,SJU, BQN need to be explain why they can be found.
+dep_delay_loc$ <- dep_delay_loc %>% mutate(perc = if_else(per <= 0.10 ,"<= 10%",0,0))
+#%>%
+  mutate(perc = if_else((per <= .15 & per > 0.10) ,"10% - 15%",0,0)) %>%
+  mutate(perc = if_else((per <= 0.20 & per > 0.15) ,"15% - 20%",0,0)) %>%
+  mutate(perc = if_else((per <= 0.25 & per > 0.2) ,"20% - 25%",0,0)) %>%
+  mutate(perc = if_else(per >= 0.25 ,"=> 25%",0,0))
 
 ```
 
 ```{r}
+geo <- list(
+  scope = 'north america',
+  projection = list(type = 'azimuthal equal area'),
+  showland = TRUE,
+  landcolor = toRGB("gray95"),
+  countrycolor = toRGB("gray80")
+)
 
+fig <- plot_geo(locationmode = 'USA-states', color = I("red"))
+fig <- fig %>% add_markers(
+  data = dep_delay_loc, x = ~lon, y = ~lat, text = ~name,
+  hoverinfo = "text", alpha = 0.5)
+fig <- fig %>% add_segments(
+    data = group_by(flights, id),
+    x = ~start_lon, xend = ~end_lon,
+    y = ~start_lat, yend = ~end_lat,
+    alpha = 0.3, size = I(1), hoverinfo = "none"
+  )
+fig <- fig %>% layout(
+    title = 'Feb. 2011 American Airline flight paths<br>(Hover for airport names)',
+    geo = geo, showlegend = FALSE, height=800
+  )
 
-```
-
-```{r}
-
-
-```
-
-```{r}
-
+fig
 
 ```
 
