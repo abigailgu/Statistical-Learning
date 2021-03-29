@@ -94,16 +94,34 @@ long_dist <- flights %>% filter(distance > 2000)
 ```
 
 
-1 Graph Critique
-flight figure 1: the prcantge of delayes in departures,only obove 15 minutes,flights out of DEN airport.
-Trying to understande in which flights routes coming out of DEN, have more delyes.
-flight figure 2:
-The reltionship between number of the delyed flights to the total number of flights. 
-צריך להמשיך לזיין את השכל פה, צריך לנהל דיון קוקי
+# **1 Graph Critique**
+###Q1:
+The first graph shows us the percentage of flights that departed over a 15-minute delay divided into each destination individually.
+The purpose of this graph is to make the reader's eye quickly find the percentage of flights based on a visualization of the United States map.
+
+The second graph shows the weekly flight cycles throughout 2008 where the blue line indicates the total number of flights that took off that day and the red line indicates the number of flights in which there was a delay of over 15 minutes.
+
+###Q2:
+In the first graph the information is not presented in an ideal way, it is difficult for the reader to identify where each line is coming from, although it is possible to understand which countries it is but it is not always possible to identify exactly which airport it is.
+
+In the second graph, in our opinion, the amount of lines and points confuses the reader and makes it difficult for him to identify the patterns of flight delays throughout the seasons.
+In addition, the information overload makes it difficult to identify recurring latency patterns on certain days for the length of the weekly / monthly cycle.
+
+###Q3:
+The first graph raises the obvious question: Are there countries where the average latency is higher than in other countries? In addition, which are the airports where the percentage of delays is higher?
+Another question is whether the percentages of delay measured vary according to the seasons?
+
+The second graph raises the questions: Are there patterns of lateness that recur on certain days of the week or in a particular season, or are there lateness in some months than in other months?
+In addition, if the observation was lower by day / month, it would be possible to compare percentages and learn from the data by comparing proportions.
+
+###Q4:
+The first graph can be improved by changing the graph to a dynamic graph. This means that when the mouse points to a certain line, we will be presented with the values of the airport we are pointing to.
+
+In the second graph it was possible to improve the visualization by changing the red bars to a long line connecting the dots which makes it possible to identify patterns in the delays of the flights.
 
 
 
-2 Reproducing these analyses
+# 2 Reproducing these analyses
 צריך עוד לייצר פה נק מינמום מקומי אינעל העולם לא יודעת איך הוא רוצה את זה מה
 
 1. A graphic summarizing the flight volume and flights delayed, broken by day and showing weekly cycles.
