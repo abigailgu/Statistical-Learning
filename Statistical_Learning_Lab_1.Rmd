@@ -157,43 +157,42 @@ dep_delay <- as.data.frame(flights) %>% filter(origin == 'EWR') %>%
   mutate(delay = if_else(dep_delay <= 15 ,0,1,0)) %>% group_by(faa = dest) %>% summarise(amount = (frequency = n()), dep = sum(delay)) %>% mutate(per = dep/amount)
 
 ```
-need to finish the second map
-i know how dont worryyyy
+
+
 ```{r}
 dep_delay_loc <- dep_delay %>% left_join(airports, by = "faa") %>% drop_na()
 # removed : STT,SJU, BQN need to be explain why they can be found.
-dep_delay_loc <- dep_delay_loc %>% mutate(perc = if_else(per <= 0.10 ,"<= 10%",0,0))
-#%>%
-  mutate(perc = if_else((per <= .15 & per > 0.10) ,"10% - 15%",0,0)) %>%
-  mutate(perc = if_else((per <= 0.20 & per > 0.15) ,"15% - 20%",0,0)) %>%
-  mutate(perc = if_else((per <= 0.25 & per > 0.2) ,"20% - 25%",0,0)) %>%
-  mutate(perc = if_else(per >= 0.25 ,"=> 25%",0,0))
+dep_delay_loc <- dep_delay_loc %>% mutate(per_ch = NA)
+dep_delay_loc$per_ch[dep_delay_loc$per <= 0.10 ] <- "<= 10%"
+dep_delay_loc$per_ch[dep_delay_loc$per <= 0.15 & dep_delay_loc$per > 0.10 ] <- "10% - 15%"
+dep_delay_loc$per_ch[dep_delay_loc$per <= 0.20 & dep_delay_loc$per > 0.15 ] <- "15% - 20%"
+dep_delay_loc$per_ch[dep_delay_loc$per <= 0.25 & dep_delay_loc$per > 0.20 ] <- "20% - 25%"
+dep_delay_loc$per_ch[dep_delay_loc$per >= 0.25] <- "25% <="
+
 
 ```
 
 ```{r}
 geo <- list(
-  scope = 'north america',
-  projection = list(type = 'azimuthal equal area'),
-  showland = TRUE,
+  scope = "north america",
+  projection = list(type = "albers usa"),
   landcolor = toRGB("gray95"),
-  countrycolor = toRGB("gray80")
-)
+  countrycolor = toRGB("gray80"))
 
-fig <- plot_geo(locationmode = 'USA-states', color = I("red"))
+fig <- plot_geo(locationmode ="world", color = ~per_ch)
 fig <- fig %>% add_markers(
   data = dep_delay_loc, x = ~lon, y = ~lat, text = ~name,
-  hoverinfo = "text", alpha = 0.5)
+  hoverinfo = "text")
+
 fig <- fig %>% add_segments(
-    data = group_by(flights, id),
-    x = ~start_lon, xend = ~end_lon,
-    y = ~start_lat, yend = ~end_lat,
-    alpha = 0.3, size = I(1), hoverinfo = "none"
-  )
+    data = dep_delay_loc,
+    x =-74.16867, xend = ~lon,
+    y = 40.6925, yend = ~lat,  size = I(1), hoverinfo = "text")
+
 fig <- fig %>% layout(
-    title = 'Feb. 2011 American Airline flight paths<br>(Hover for airport names)',
-    geo = geo, showlegend = FALSE, height=800
-  )
+    title = '% of Flight Departures Delayed > 15 Min<br>(Hover for airport names)',
+    geo = geo, height=800)
+
 
 fig
 
