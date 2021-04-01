@@ -9,7 +9,7 @@ output: html_document
 # tools and data upload
 library(ggplot2)
 library(dplyr)
-library(scales)   # needed for formatting y-axis labels to non-scientific type
+library(scales) # needed for formatting y-axis labels to non-scientific type
 library(tidyr)
 library(tidyverse)
 library(ggthemes)
@@ -21,9 +21,7 @@ library(MASS) # reg modeling
 library(corrplot)
 library(caTools)
 library(plotly)
-
 ```
-
 
 ```{r}
 options(scipen = 999)
@@ -34,7 +32,7 @@ planes <- nycflights13::planes
 ```
 
 ```{r, echo=FALSE, results='asis',fig.keep='all'}
-summary(flights)
+#summary(flights)
 flights_con <- flights[,c(2:9, 11 ,15:19)]
 flights_catgory <- flights[,c(10 ,12:15)]
 
@@ -90,42 +88,41 @@ ggplot(data = flights, mapping = aes(x = flight)) +
 ggplot(data = flights, mapping = aes(x = distance)) + 
   geom_histogram(binwidth = 1) + xlim (0,2000)
 long_dist <- flights %>% filter(distance > 2000)
-
 ```
 
 
 # **1 Graph Critique**
-###Q1:
+### Q1:
 The first graph shows us the percentage of flights that departed over a 15-minute delay divided into each destination individually.
 The purpose of this graph is to make the reader's eye quickly find the percentage of flights based on a visualization of the United States map.
 
 The second graph shows the weekly flight cycles throughout 2008 where the blue line indicates the total number of flights that took off that day and the red line indicates the number of flights in which there was a delay of over 15 minutes.
 
-###Q2:
+### Q2:
 In the first graph the information is not presented in an ideal way, it is difficult for the reader to identify where each line is coming from, although it is possible to understand which countries it is but it is not always possible to identify exactly which airport it is.
 
 In the second graph, in our opinion, the amount of lines and points confuses the reader and makes it difficult for him to identify the patterns of flight delays throughout the seasons.
 In addition, the information overload makes it difficult to identify recurring latency patterns on certain days for the length of the weekly / monthly cycle.
 
-###Q3:
+### Q3:
 The first graph raises the obvious question: Are there countries where the average latency is higher than in other countries? In addition, which are the airports where the percentage of delays is higher?
 Another question is whether the percentages of delay measured vary according to the seasons?
 
 The second graph raises the questions: Are there patterns of lateness that recur on certain days of the week or in a particular season, or are there lateness in some months than in other months?
 In addition, if the observation was lower by day / month, it would be possible to compare percentages and learn from the data by comparing proportions.
 
-###Q4:
+### Q4:
 The first graph can be improved by changing the graph to a dynamic graph. This means that when the mouse points to a certain line, we will be presented with the values of the airport we are pointing to.
 
 In the second graph it was possible to improve the visualization by changing the red bars to a long line connecting the dots which makes it possible to identify patterns in the delays of the flights.
 
 
 
-# 2 Reproducing these analyses
+# **2 Reproducing these analyses**
 צריך עוד לייצר פה נק מינמום מקומי אינעל העולם לא יודעת איך הוא רוצה את זה מה
 
 1. A graphic summarizing the flight volume and flights delayed, broken by day and showing weekly cycles.
-```{r fig3, fig.width = 15, fig.asp = .32}
+```{r fig3, fig.width = 15, fig.asp = .32, warning=F}
 #EWR/ LGA/ JFK to choose
 week_cycles <- as.data.frame(flights) %>% filter(origin == 'EWR') %>% dplyr::select(time_hour ,dep_delay ,sched_dep_time)
 week_cycles$time_hour <- as.Date(week_cycles$time_hour)
@@ -154,8 +151,6 @@ ggplot(data = week_cycles_freq,aes(x = time_hour,
 #need to takecare in the point of the locl minmun
 ```
 
-
-
 the other graph, flight percent
 ```{r}
 dep_delay <- as.data.frame(flights) %>% filter(origin == 'EWR') %>%
@@ -167,7 +162,7 @@ i know how dont worryyyy
 ```{r}
 dep_delay_loc <- dep_delay %>% left_join(airports, by = "faa") %>% drop_na()
 # removed : STT,SJU, BQN need to be explain why they can be found.
-dep_delay_loc$ <- dep_delay_loc %>% mutate(perc = if_else(per <= 0.10 ,"<= 10%",0,0))
+dep_delay_loc <- dep_delay_loc %>% mutate(perc = if_else(per <= 0.10 ,"<= 10%",0,0))
 #%>%
   mutate(perc = if_else((per <= .15 & per > 0.10) ,"10% - 15%",0,0)) %>%
   mutate(perc = if_else((per <= 0.20 & per > 0.15) ,"15% - 20%",0,0)) %>%
@@ -214,3 +209,39 @@ plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+
+# **3. Freestyle analysis:**
+```{r, warning=F}
+summary(flights)
+#בדיקת המשתנים הקטגוריים אל מול המשתנים הרציפיים - למטרת למידת הנתונים 
+ggplot(data = flights, mapping = aes( x = hour, y = air_time)) +ylim = c(0, 500)
+  geom_boxplot(mapping = aes(group = cut_width(hour,0.1))) +coord_cartesian(xlim = c(1, 24))
+
+
+
+# dep_time
+# sched_dep_time
+# dep_delay
+# arr_time
+# sched_arr_time
+# arr_delay
+# air_time    
+
+ggplot(data = flights, mapping = aes( x = day, y = arr_delay)) +
+  geom_point(mapping = aes(group = cut_width(day,0.1))) +coord_cartesian(xlim = c(1, 24), ylim = c(0,500))
+```
+
+
+# **4. Graphical ”Lineup:**
+```{r}
+
+
+
+
+
+```
+
+
