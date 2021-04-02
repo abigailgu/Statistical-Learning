@@ -4,7 +4,7 @@ author: "Gutman Abigail & Shalom Shahar"
 date: "22 3 2021"
 output: html_document
 ---
-
+#הורדת ספריות 
 ```{r setup, include=FALSE}
 # tools and data upload
 library(ggplot2)
@@ -21,6 +21,8 @@ library(MASS) # reg modeling
 library(corrplot)
 library(caTools)
 library(plotly)
+library(lubridate)
+library(hexbin)
 ```
 
 ```{r}
@@ -89,7 +91,6 @@ ggplot(data = flights, mapping = aes(x = distance)) +
   geom_histogram(binwidth = 1) + xlim (0,2000)
 long_dist <- flights %>% filter(distance > 2000)
 ```
-
 
 # **1 Graph Critique**
 ### Q1:
@@ -225,29 +226,43 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 
 
 # **3. Freestyle analysis:**
-```{r, warning=F}
-summary(flights)
-#בדיקת המשתנים הקטגוריים אל מול המשתנים הרציפיים - למטרת למידת הנתונים 
-#ggplot(data = flights, mapping = aes( x = hour, y = air_time)) +ylim = c(0, 500)
-#  geom_boxplot(mapping = aes(group = cut_width(hour,0.1))) +coord_cartesian(xlim = c(1, 24))
+
+The first graph shows the relationship between visibility and flight delays.
+```{r, warning=F, message=F}
+flights_delayed <- filter(flights, dep_delay >0 ) #We want to see only the delayed flights 
+flights_delayed <- flights_delayed %>%  group_by(time_hour) %>% summarise(Avg_dep_delay = mean(dep_delay))
+
+Wheather_cond <- left_join(flights_delayed, wheather) #combine the two relevant data frames 
+
+visib_df <- Wheather_cond %>% group_by(visib) %>% summarise(Avg_dep_delay = mean(Avg_dep_delay))
+
+ggplot(data = visib_df, mapping = aes(x = visib, y = Avg_dep_delay)) + geom_point(color = "violetred4") + 
+  geom_smooth(method = "lm", fill = "violet", color = "violetred4") +
+  labs(x = "visibility", y="Average Departure Delay Time (minutes)", 
+       title = "Average Departure Delay vs. Quality of visibility")
+```
+When we tried to think what was the main reason for the delay of flights the first thing that came to our mind was the weather conditions.
+When we studied the weather database we noticed a variable called "visib" and decided to try to understand the relationship between visibility and flight delays.
+The graph shown above shows a direct relationship between the quality of visibility and the average flight delay in minutes. The better the visibility, the smaller the average delays.
 
 
 
-# dep_time
-# sched_dep_time
-# dep_delay
-# arr_time
-# sched_arr_time
-# arr_delay
-# air_time    
+The second graph
+```{r}
 
-#ggplot(data = flights, mapping = aes( x = day, y = arr_delay)) +
-#  geom_point(mapping = aes(group = cut_width(day,0.1))) +coord_cartesian(xlim = c(1, 24), ylim = c(0,500))
+
+
 ```
 
 
+
+
+
 # **4. Graphical ”Lineup:**
+
 ```{r}
+
+
 
 
 
