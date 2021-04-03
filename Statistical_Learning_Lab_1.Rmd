@@ -230,9 +230,9 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 The first graph shows the relationship between visibility and flight delays.
 ```{r, warning=F, message=F}
 flights_delayed <- filter(flights, dep_delay >0 ) #We want to see only the delayed flights 
-flights_delayed <- flights_delayed %>%  group_by(time_hour) %>% summarise(Avg_dep_delay = mean(dep_delay))
+flights_delayed1 <- flights_delayed %>%  group_by(time_hour) %>% summarise(Avg_dep_delay = mean(dep_delay))
 
-Wheather_cond <- left_join(flights_delayed, wheather) #combine the two relevant data frames 
+Wheather_cond <- left_join(flights_delayed1, wheather) #combine the two relevant data frames 
 
 visib_df <- Wheather_cond %>% group_by(visib) %>% summarise(Avg_dep_delay = mean(Avg_dep_delay))
 
@@ -250,8 +250,6 @@ The graph shown above shows a direct relationship between the quality of visibil
 The second graph
 ```{r}
 
-
-
 ```
 
 
@@ -261,8 +259,13 @@ The second graph
 # **4. Graphical ”Lineup:**
 
 ```{r}
+by_month <- flights_delayed %>% group_by(month) %>% summarise(n = n_distinct(dep_delay), avg_delay = mean(dep_delay))
 
+#by_month$month <- as.character.Date(by_month$month)
+n_avg <- mean(by_month$n)
+dep_delay_avg <- mean(by_month$avg_delay)
 
+x1 <- runif(n_avg, min = min(by_month$avg_delay), max = max(by_month$avg_delay))
 
 
 
