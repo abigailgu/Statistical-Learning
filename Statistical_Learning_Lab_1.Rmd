@@ -182,36 +182,39 @@ dep_delay_loc$per_ch[dep_delay_loc$per >= 0.25] <- "25% <="
 ```
 
 ```{r}
+
+
+
 geo <- list(
-  scope = "north america",
+  scope = "usa",
   projection = list(type = "albers usa"),
   landcolor = toRGB("gray95"), showlegend = FALSE,
   countrycolor = toRGB("gray80"))
 
-fig <- plot_geo(locationmode ="world", color = ~per_ch)
+fig <- plot_geo(locationmode ="ISO-3", color = ~per_ch)
 
 fig <- fig %>% add_markers(
-  data = dep_delay_loc, x = ~lon, y = ~lat, text = ~name,
+  data = dep_delay_loc, x = ~lon, y = ~lat,
   showlegend = FALSE)
 
 fig <- fig %>% add_segments(
     data = dep_delay_loc,
     x =-74.16867, xend = ~lon,
-    y = 40.6925, yend = ~lat,  size = I(1),text = ~name, hoverinfo = "text")
+    y = 40.6925, yend = ~lat,  size = I(1),text = ~name, hoverinfo = "text" )
 
 fig <- fig %>% layout(
     title = list(text= '<b>% of Flight Departures Delayed > 15 Min</b><br>Airport = EWR    Year = 2013'),
-                 
-    geo = geo, height=500)
+                 geo = geo, height=500)
 fig <- fig %>% layout(legend = list(x = 0.1, y = -0.4))  %>%
-  layout(legend=list(title=list(text='<b> Percent range </b>')))
-
+  layout(legend=list(title=list(text='<b> Percent range </b>'))) %>%
+  add_trace(data = dep_delay_loc ,type = "scattergeo",text = ~ faa , mode = "text", showlegend = FALSE)
 
 fig
 
 ```
 
 ```{r}
+
 
 
 ```
