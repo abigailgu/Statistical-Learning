@@ -251,15 +251,28 @@ The graph shown above shows a direct relationship between the quality of visibil
 
 
 The second graph
-```{r}
 
+לא עבד נמשיך מחר :(( ))
+```{r}
+flights_delayed2 <- filter(flights, arr_delay >0 )
+merges_planes <- merge(flights, planes, by = "tailnum")
+merges_planes <- mutate(merges_planes, Age = year.x - year.y) %>%  mutate(Age = if_else(Age > 25, 25L, Age))
+
+flights_delayed_plane <- merges_planes %>% group_by(Age) %>% summarise(Avg_dep_delay = mean(arr_delay, na.rm = T), n = n_distinct(arr_delay, na.rm = T)) %>% filter(!is.na(Age)) 
+flights_delayed_plane <- filter(flights_delayed_plane, n >30)
+
+ggplot(data = flights_delayed_plane, mapping = aes(x = Age, y = Avg_dep_delay)) + geom_point(color = "violetred4") + geom_smooth( fill = "violet", color = "violetred4")
+
+
+ggplot(data = merges_planes) +
+  geom_boxplot(mapping = aes(x = manufacturer, y = dep_delay)) +   coord_flip()
 ```
 
 
 
 
 
-# **4. Graphical ”Lineup:**
+# **4. Graphical Lineup:**
 
 ```{r}
 by_month <- flights_delayed %>% group_by(month) %>% summarise(n = n_distinct(dep_delay), avg_delay = mean(dep_delay))
@@ -270,10 +283,7 @@ dep_delay_avg <- mean(by_month$avg_delay)
 
 x1 <- runif(n_avg, min = min(by_month$avg_delay), max = max(by_month$avg_delay))
 
-
-
-
-
+ggplot(by_month) + geom_line(mapping = aes(x = month, y = avg_delay))
 ```
 
 
