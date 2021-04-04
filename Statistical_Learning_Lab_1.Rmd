@@ -23,6 +23,7 @@ library(caTools)
 library(plotly)
 library(lubridate)
 library(hexbin)
+library(usmap)
 ```
 
 ```{r}
@@ -177,6 +178,8 @@ dep_delay_loc$per_ch[dep_delay_loc$per <= 0.15 & dep_delay_loc$per > 0.10 ] <- "
 dep_delay_loc$per_ch[dep_delay_loc$per <= 0.20 & dep_delay_loc$per > 0.15 ] <- "15% - 20%"
 dep_delay_loc$per_ch[dep_delay_loc$per <= 0.25 & dep_delay_loc$per > 0.20 ] <- "20% - 25%"
 dep_delay_loc$per_ch[dep_delay_loc$per >= 0.25] <- "25% <="
+dep_delay_loc$per_ch <- factor(dep_delay_loc$per_ch, levels = c("<= 10%","10% - 15%",
+                                                         "15% - 20%","20% - 25%","25% <="))
 
 
 ```
@@ -215,12 +218,31 @@ fig
 
 ```{r}
 
+plot_usmap(regions = "states",labels = TRUE,exclude =  c("AK","HI"), size = 0.5,
+           label_color = "grey",
+           color = "grey") + 
+    theme(panel.background=element_blank()) +
+  geom_segment(data = dep_delay_loc, aes(x = lon,y = lat, xend = -74.16867,
+                                         yend = 40.6925 ,colour = per_ch),size = 1) + 
+  geom_point(data = dep_delay_loc, aes(x = lon , y = lat, colour =  per_ch),
+             size = 1.5, show.legend = F) +
+  scale_color_manual(name = "",values = c("green","purple","blue","orange","red"),
+                     guide =  guide_legend(override.aes = list(linetype = c(1, 1, 1,1,1),
+                                                               size = c(1.5,1.5,1.5,1.5,1.5)))) +
+    labs(title = '% of Flight Departures Delayed > 15 Min',
+          subtitle = 'Airport = EWR Year = 2013') +
+      theme(plot.title = element_text(hjust = 0.5,size = 20),
+          plot.subtitle = element_text(hjust = 0.5,size = 15)) 
 
 
-```
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+
+
+
+
+
+
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
