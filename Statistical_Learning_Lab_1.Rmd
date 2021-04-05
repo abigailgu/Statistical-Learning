@@ -38,61 +38,61 @@ planes <- nycflights13::planes
 
 ```{r, echo=FALSE, results='asis',fig.keep='all'}
 #summary(flights)
-flights_con <- flights[,c(2:9, 11 ,15:19)]
-flights_catgory <- flights[,c(10 ,12:15)]
-
-catgory <- colnames(flights_catgory) 
-carrier <- flights_catgory %>% count(carrier)# helpful
-kable(carrier, row.names = F) %>% kable_styling()
-
-tailnum <-flights_catgory %>% count(tailnum)
-kable(tailnum, row.names = F) %>% kable_styling()
-
-origin <- flights_catgory %>% count(origin) #helpful
-kable(origin, row.names = F) %>% kable_styling()
-
-dest <- flights_catgory %>% count(dest) # need to check
-kable(dest, row.names = F) %>% kable_styling()
-
-air_time <- flights_catgory %>% count(air_time)#need to check
-kable(air_time, row.names = F) %>% kable_styling()
-
-countinuous <- colnames(flights_con)
-ggplot(data = flights_con) +
-  geom_bar(mapping = aes(x = month))  # 2 חשוד
-
-ggplot(data = flights_con) +
-  geom_bar(mapping = aes(x = day))  # 30 לחודש חשוד
-
-ggplot(data = flights, mapping = aes(x = dep_time/100)) + 
-  geom_histogram(binwidth = 0.25) # טיסות שממריאות בלילה ?
-
-ggplot(data = flights, mapping = aes(x = arr_time/100)) + 
-  geom_histogram(binwidth = 0.25)  # טיסות שמגיעות בלילה?
-
-
-ggplot(data = flights, mapping = aes(x = sched_dep_time/100)) + 
-  geom_histogram(binwidth = 0.25)
-
-ggplot(data = flights, mapping = aes(x = dep_delay)) + 
-  geom_histogram(binwidth = 1) + xlim(0,300)
-dep_delay_over <- flights %>% filter(dep_delay > 300)
-
-
-ggplot(data = flights, mapping = aes(x = arr_delay)) + 
-  geom_histogram(binwidth = 1) + xlim(0,300)
-arr_delay_over <- flights %>% filter(arr_delay > 300)
-
-
-ggplot(data = flights, mapping = aes(x = sched_arr_time/100)) + 
-  geom_histogram(binwidth = 0.25)
-
-ggplot(data = flights, mapping = aes(x = flight)) + 
-  geom_histogram(binwidth = 1) # מזהה טיסה
-
-ggplot(data = flights, mapping = aes(x = distance)) + 
-  geom_histogram(binwidth = 1) + xlim (0,2000)
-long_dist <- flights %>% filter(distance > 2000)
+# flights_con <- flights[,c(2:9, 11 ,15:19)]
+# flights_catgory <- flights[,c(10 ,12:15)]
+# 
+# catgory <- colnames(flights_catgory) 
+# carrier <- flights_catgory %>% count(carrier)# helpful
+# kable(carrier, row.names = F) %>% kable_styling()
+# 
+# tailnum <-flights_catgory %>% count(tailnum)
+# kable(tailnum, row.names = F) %>% kable_styling()
+# 
+# origin <- flights_catgory %>% count(origin) #helpful
+# kable(origin, row.names = F) %>% kable_styling()
+# 
+# dest <- flights_catgory %>% count(dest) # need to check
+# kable(dest, row.names = F) %>% kable_styling()
+# 
+# air_time <- flights_catgory %>% count(air_time)#need to check
+# kable(air_time, row.names = F) %>% kable_styling()
+# 
+# countinuous <- colnames(flights_con)
+# ggplot(data = flights_con) +
+#   geom_bar(mapping = aes(x = month))  # 2 חשוד
+# 
+# ggplot(data = flights_con) +
+#   geom_bar(mapping = aes(x = day))  # 30 לחודש חשוד
+# 
+# ggplot(data = flights, mapping = aes(x = dep_time/100)) + 
+#   geom_histogram(binwidth = 0.25) # טיסות שממריאות בלילה ?
+# 
+# ggplot(data = flights, mapping = aes(x = arr_time/100)) + 
+#   geom_histogram(binwidth = 0.25)  # טיסות שמגיעות בלילה?
+# 
+# 
+# ggplot(data = flights, mapping = aes(x = sched_dep_time/100)) + 
+#   geom_histogram(binwidth = 0.25)
+# 
+# ggplot(data = flights, mapping = aes(x = dep_delay)) + 
+#   geom_histogram(binwidth = 1) + xlim(0,300)
+# dep_delay_over <- flights %>% filter(dep_delay > 300)
+# 
+# 
+# ggplot(data = flights, mapping = aes(x = arr_delay)) + 
+#   geom_histogram(binwidth = 1) + xlim(0,300)
+# arr_delay_over <- flights %>% filter(arr_delay > 300)
+# 
+# 
+# ggplot(data = flights, mapping = aes(x = sched_arr_time/100)) + 
+#   geom_histogram(binwidth = 0.25)
+# 
+# ggplot(data = flights, mapping = aes(x = flight)) + 
+#   geom_histogram(binwidth = 1) # מזהה טיסה
+# 
+# ggplot(data = flights, mapping = aes(x = distance)) + 
+#   geom_histogram(binwidth = 1) + xlim (0,2000)
+# long_dist <- flights %>% filter(distance > 2000)
 ```
 
 # **1 Graph Critique**
@@ -239,7 +239,7 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 
 The first graph shows the relationship between visibility and flight delays.
 ```{r, warning=F, message=F}
-flights_delayed <- filter(flights, dep_delay >0 ) #We want to see only the delayed flights 
+flights_delayed <- filter(flights, dep_delay >15 ) #We want to see only the delayed flights 
 flights_delayed1 <- flights_delayed %>%  group_by(time_hour) %>% summarise(Avg_dep_delay = mean(dep_delay))
 
 Wheather_cond <- left_join(flights_delayed1, wheather) #combine the two relevant data frames 
@@ -268,11 +268,11 @@ merges_planes <- mutate(merges_planes, Age = year.x - year.y) %>%  mutate(Age = 
 flights_delayed_plane <- merges_planes %>% group_by(Age) %>% summarise(Avg_dep_delay = mean(arr_delay, na.rm = T), n = n_distinct(arr_delay, na.rm = T)) %>% filter(!is.na(Age)) 
 flights_delayed_plane <- filter(flights_delayed_plane, n >30)
 
-ggplot(data = flights_delayed_plane, mapping = aes(x = Age, y = Avg_dep_delay)) + geom_point(color = "violetred4") + geom_smooth( fill = "violet", color = "violetred4")
-
-
-ggplot(data = merges_planes) +
-  geom_boxplot(mapping = aes(x = manufacturer, y = dep_delay)) +   coord_flip()
+# ggplot(data = flights_delayed_plane, mapping = aes(x = Age, y = Avg_dep_delay)) + geom_point(color = "violetred4") + geom_smooth( fill = "violet", color = "violetred4")
+# 
+# 
+# ggplot(data = merges_planes) +
+#   geom_boxplot(mapping = aes(x = manufacturer, y = dep_delay)) +   coord_flip()
 ```
 
 
@@ -281,16 +281,35 @@ ggplot(data = merges_planes) +
 
 # **4. Graphical Lineup:**
 
+לצבוע יפה את הגרפים החמודים שלי 
 ```{r}
-by_month <- flights_delayed %>% group_by(month) %>% summarise(n = n_distinct(dep_delay), avg_delay = mean(dep_delay))
+# flights_delayed$month <- as.character.numeric_version(flights_delayed$month)
 
-#by_month$month <- as.character.Date(by_month$month)
-n_avg <- mean(by_month$n)
-dep_delay_avg <- mean(by_month$avg_delay)
-
-x1 <- runif(n_avg, min = min(by_month$avg_delay), max = max(by_month$avg_delay))
-
-ggplot(by_month) + geom_line(mapping = aes(x = month, y = avg_delay))
+ggplot(data = flights_delayed, mapping = aes(x = day)) +
+  geom_bar()+ facet_wrap(~month)
 ```
 
+
+לעשות אותו חתיך 
+```{r, message=F}
+by_month <- flights_delayed %>% group_by(month) %>% summarise(val = n_distinct(dep_delay))
+by_month <- data.frame(by_month, semp = c(1,1,1,1,1,1,1,1,1,1,1,1))
+
+sampled_df <- by_month
+row.names(sampled_df) <- by_month$month
+
+for (i in (2:12)){
+  x <- data.frame(month = c(1,2,3,4,5,6,7,8,9,10,11,12), semp = c(i,i,i,i,i,i,i,i,i,i,i,i),val = sample(by_month$val))
+  sampled_df <- full_join(sampled_df, x)
+}
+
+
+plot_df <- sampled_df
+#plot_df$month <- as.character.numeric_version(plot_df$month)
+
+
+ggplot(data = plot_df, mapping = aes(x  = month, y = val)) + facet_wrap(~semp) + scale_x_continuous(breaks = c(1:12)) +geom_bar(stat="identity")
+
+
+```
 
