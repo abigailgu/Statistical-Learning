@@ -24,6 +24,8 @@ library(plotly)
 library(lubridate)
 library(hexbin)
 library(usmap)
+library(rgdal)
+library(ggiraph)
 ```
 
 ```{r}
@@ -188,60 +190,43 @@ dep_delay_loc$per_ch <- factor(dep_delay_loc$per_ch, levels = c("<= 10%","10% - 
 
 
 
-geo <- list(
-  scope = "usa",
-  projection = list(type = "albers usa"),
-  landcolor = toRGB("gray95"), showlegend = FALSE,
-  countrycolor = toRGB("gray80"))
-
-fig <- plot_geo(locationmode ="ISO-3", color = ~per_ch)
-
-fig <- fig %>% add_markers(
-  data = dep_delay_loc, x = ~lon, y = ~lat,
-  showlegend = FALSE)
-
-fig <- fig %>% add_segments(
-    data = dep_delay_loc,
-    x =-74.16867, xend = ~lon,
-    y = 40.6925, yend = ~lat,  size = I(1),text = ~name, hoverinfo = "text" )
-
-fig <- fig %>% layout(
-    title = list(text= '<b>% of Flight Departures Delayed > 15 Min</b><br>Airport = EWR    Year = 2013'),
-                 geo = geo, height=500)
-fig <- fig %>% layout(legend = list(x = 0.1, y = -0.4))  %>%
-  layout(legend=list(title=list(text='<b> Percent range </b>'))) %>%
-  add_trace(data = dep_delay_loc ,type = "scattergeo",text = ~ faa , mode = "text", showlegend = FALSE)
-
-fig
-
 ```
 
 ```{r}
 
-plot_usmap(regions = "states",labels = TRUE,exclude =  c("AK","HI"), size = 0.5,
+dep_delay_loc <- dep_delay_loc %>% mutate(nyc_EWR_lon = -74.16867) %>% mutate(nyc_EWR_lat = 40.6925 )
+dep_delay_trans <- dep_delay_loc %>% select(lon,lat) %>% usmap_transform()
+dep_delay_loc$lon <- dep_delay_trans$lon.1
+dep_delay_loc$lat <- dep_delay_trans$lat.1
+
+dep_delay_trans <- dep_delay_loc %>% select(nyc_EWR_lon,nyc_EWR_lat) %>% usmap_transform()
+dep_delay_loc$lnyc_EWR_lon <- dep_delay_trans$nyc_EWR_lon.1
+dep_delay_loc$lnyc_EWR_lat <- dep_delay_trans$nyc_EWR_lat.1
+row.names(dep_delay_loc) <- dep_delay_loc$name
+
+
+
+
+plot_del <- plot_usmap(regions = "states",labels = TRUE,exclude =  c("AK","HI"), size = 0.5,
            label_color = "grey",
            color = "grey") + 
     theme(panel.background=element_blank()) +
-  geom_segment(data = dep_delay_loc, aes(x = lon,y = lat, xend = -74.16867,
-                                         yend = 40.6925 ,colour = per_ch),size = 1) + 
-  geom_point(data = dep_delay_loc, aes(x = lon , y = lat, colour =  per_ch),
-             size = 1.5, show.legend = F) +
+  geom_segment(data = dep_delay_loc, aes(xend = lon,yend = lat, x = lnyc_EWR_lon,
+                                         y = lnyc_EWR_lat ,colour = per_ch),size = 0.5) + 
+  geom_point(data = dep_delay_loc, aes(x = lon , y = lat, colour =  per_ch, text = row.names(dep_delay_loc)),
+             size = 0.5, show.legend = F) +
   scale_color_manual(name = "",values = c("green","purple","blue","orange","red"),
                      guide =  guide_legend(override.aes = list(linetype = c(1, 1, 1,1,1),
                                                                size = c(1.5,1.5,1.5,1.5,1.5)))) +
-    labs(title = '% of Flight Departures Delayed > 15 Min',
-          subtitle = 'Airport = EWR Year = 2013') +
-      theme(plot.title = element_text(hjust = 0.5,size = 20),
-          plot.subtitle = element_text(hjust = 0.5,size = 15)) 
+    labs(title = '<b>% of Flight Departures Delayed > 15 Min</b><br> Airport = EWR Year = 2013',
+         caption = "Click line endpoint to see that airport departures") +
+      theme(plot.title = element_text(hjust = 0.5,size = 13),
+          plot.subtitle = element_text(hjust = 0.5,size = 10))
 
 
 
 
-
-
-
-
-
+ggplotly(plot_del, tooltip = "text") %>% layout(legend = list(x = 0, y = 0))
 
 ```
 
