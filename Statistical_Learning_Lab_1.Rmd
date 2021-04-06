@@ -26,7 +26,6 @@ library(hexbin)
 library(usmap)
 library(rgdal)
 library(ggiraph)
-library(nullabor)
 library(wesanderson)
 library(viridis)
 ```
