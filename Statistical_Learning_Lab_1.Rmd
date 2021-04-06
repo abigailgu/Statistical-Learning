@@ -38,65 +38,6 @@ airports <- nycflights13::airports
 planes <- nycflights13::planes
 ```
 
-```{r, echo=FALSE, results='asis',fig.keep='all'}
-#summary(flights)
-# flights_con <- flights[,c(2:9, 11 ,15:19)]
-# flights_catgory <- flights[,c(10 ,12:15)]
-# 
-# catgory <- colnames(flights_catgory) 
-# carrier <- flights_catgory %>% count(carrier)# helpful
-# kable(carrier, row.names = F) %>% kable_styling()
-# 
-# tailnum <-flights_catgory %>% count(tailnum)
-# kable(tailnum, row.names = F) %>% kable_styling()
-# 
-# origin <- flights_catgory %>% count(origin) #helpful
-# kable(origin, row.names = F) %>% kable_styling()
-# 
-# dest <- flights_catgory %>% count(dest) # need to check
-# kable(dest, row.names = F) %>% kable_styling()
-# 
-# air_time <- flights_catgory %>% count(air_time)#need to check
-# kable(air_time, row.names = F) %>% kable_styling()
-# 
-# countinuous <- colnames(flights_con)
-# ggplot(data = flights_con) +
-#   geom_bar(mapping = aes(x = month))  # 2 חשוד
-# 
-# ggplot(data = flights_con) +
-#   geom_bar(mapping = aes(x = day))  # 30 לחודש חשוד
-# 
-# ggplot(data = flights, mapping = aes(x = dep_time/100)) + 
-#   geom_histogram(binwidth = 0.25) # טיסות שממריאות בלילה ?
-# 
-# ggplot(data = flights, mapping = aes(x = arr_time/100)) + 
-#   geom_histogram(binwidth = 0.25)  # טיסות שמגיעות בלילה?
-# 
-# 
-# ggplot(data = flights, mapping = aes(x = sched_dep_time/100)) + 
-#   geom_histogram(binwidth = 0.25)
-# 
-# ggplot(data = flights, mapping = aes(x = dep_delay)) + 
-#   geom_histogram(binwidth = 1) + xlim(0,300)
-# dep_delay_over <- flights %>% filter(dep_delay > 300)
-# 
-# 
-# ggplot(data = flights, mapping = aes(x = arr_delay)) + 
-#   geom_histogram(binwidth = 1) + xlim(0,300)
-# arr_delay_over <- flights %>% filter(arr_delay > 300)
-# 
-# 
-# ggplot(data = flights, mapping = aes(x = sched_arr_time/100)) + 
-#   geom_histogram(binwidth = 0.25)
-# 
-# ggplot(data = flights, mapping = aes(x = flight)) + 
-#   geom_histogram(binwidth = 1) # מזהה טיסה
-# 
-# ggplot(data = flights, mapping = aes(x = distance)) + 
-#   geom_histogram(binwidth = 1) + xlim (0,2000)
-# long_dist <- flights %>% filter(distance > 2000)
-```
-
 # **1. Graph Critique**
 ### Question 1:
 The first graph shows us the percentage of flights that departed over a 15-minute delay divided into each destination individually.
@@ -126,7 +67,6 @@ In the second graph it was possible to improve the visualization by changing the
 
 # **2 Reproducing these analyses**
 
-
 ### Question 1:
 A graphic summarizing the flight volume and flights delayed, broken by day and showing weekly cycles.
 ```{r fig3, fig.width = 15, fig.asp = .32, warning=F}
@@ -154,14 +94,13 @@ ggplot(data = week_cycles_freq,aes(x = time_hour,
     scale_color_identity(name ="" ,breaks = c("blue","red", "lightblue"),
                        labels = c("All Flights (scheculed for departure)",
                                   "Late Flights (departure delayed >15)", "Fewer Flights"),
-                          guide =  guide_legend(override.aes = list(linetype = c(1, 1, 0),
-                                                                    shape = c(16,16,16),
-                                                                    size = c(1,1,7)))) + 
+                          guide =  guide_legend(override.aes = list(linetype = c(1, 1, 0), shape =                                                        c(16,16,16),size = c(1,1,7)))) + 
   theme_light()  +
   xlab("Date")+ ylab("Flights per day") +
   theme(legend.position="top",legend.direction = "vertical") +
   ggtitle(label = "Weekly Cycles", subtitle = "the airport, we need to choose, Year = 2013") +
   theme(plot.title = element_text(hjust = 0.5,size = 20),plot.subtitle = element_text(hjust = 0.5,size = 15)) 
+
 ```
 
 
@@ -226,7 +165,7 @@ flights_delayed1 <- flights_delayed %>%  group_by(time_hour) %>% summarise(Avg_d
 
 Wheather_cond <- left_join(flights_delayed1, wheather) #combine the two relevant data frames 
 
-visib_df <- Wheather_cond %>% group_by(visib) %>% summarise(Avg_dep_delay = mean(Avg_dep_delay))
+visib_df <- Wheather_cond %>% group_by(visib) %>% summarise(Avg_dep_delay = mean(Avg_dep_delay, na.rm = T))
 
 ggplot(data = visib_df, mapping = aes(x = visib, y = Avg_dep_delay)) + geom_point(color = "violetred4") + 
   geom_smooth(method = "lm", fill = "violet", color = "violetred4") +
@@ -243,26 +182,18 @@ The graph shown above shows a direct relationship between the quality of visibil
 
 The second graph
 
-לא עבד נמשיך מחר :(( ))
-```{r}
-flights_delayed2 <- filter(flights, arr_delay >0 )
-merges_planes <- merge(flights, planes, by = "tailnum")
-merges_planes <- mutate(merges_planes, Age = year.x - year.y) %>%  mutate(Age = if_else(Age > 25, 25L, Age))
 
-flights_delayed_plane <- merges_planes %>% group_by(Age) %>% summarise(Avg_dep_delay = mean(arr_delay, na.rm = T), n = n_distinct(arr_delay, na.rm = T)) %>% filter(!is.na(Age)) 
-flights_delayed_plane <- filter(flights_delayed_plane, n >30)
+מה לעזאזאל אני רואה פה ?!?!?!?!?!? 
+```{r, message=F}
+by_hour <- flights_delayed  %>% group_by(hour) %>% summarise(Avg_dep_delay = mean(dep_delay, na.rm = T))  
 
-# ggplot(data = flights_delayed_plane, mapping = aes(x = Age, y = Avg_dep_delay)) + geom_point(color = "violetred4") + geom_smooth( fill = "violet", color = "violetred4")
-# 
-# 
-# ggplot(data = merges_planes) +
-#   geom_boxplot(mapping = aes(x = manufacturer, y = dep_delay)) +   coord_flip()
+ggplot(data = by_hour, mapping = aes(x = hour, y = Avg_dep_delay)) + geom_point(color = "dodgerblue4") + geom_smooth(method = "lm", fill = "deepskyblue", color = "dodgerblue4") +
+  labs(x = "Hour", y="Average Departure Delay Time (minutes)", 
+       title = "Average Departure Delay vs. Hour") + ylim(c(45,75))
 ```
 
 
-
 # **4. Graphical Lineup:**
-
 
 ### Question 1:
 ```{r}
@@ -277,7 +208,7 @@ ggplot(data = flights_delayed, aes(x = day)) +
 ### Question 2:
 ```{r, message=F}
 #First' we created a df that containes only the data that we need 
-by_month <- flights_delayed %>% group_by(month) %>% summarise(val = n_distinct(dep_delay))
+by_month <- flights_delayed %>% group_by(month) %>% summarise(val = n())
 by_month <- data.frame(by_month, semp = c(rep(1,12))) #named the real data as sample 1.
 
 sampled_df <- by_month
@@ -285,7 +216,7 @@ row.names(sampled_df) <- by_month$month
 
 #loop that sample new vecrots and tag the sample with number
 #also each sample will merged to the data that containes the real values. 
-for (i in (2:12)){
+for (i in (2:9)){
   x <- data.frame(month = c(1:12), semp = c(rep(i,12)),val = sample(by_month$val))
   sampled_df <- full_join(sampled_df, x)
 }
@@ -297,7 +228,7 @@ ggplot(data = sampled_df, mapping = aes(x  = month, y = val, fill = val)) + face
   geom_bar(stat="identity") + 
   labs(title  = "Simulated data-sets of delayed flight using line-up",
        subtitle = "(Delayed flights are set to be flights that left the airport with over 15 minutes delay)", y = "Count of delayed flight", x = "Month")+
-   theme(axis.text.x = element_text(size = 6)) +
+   theme(axis.text.x = element_text(size = 8)) +
   scale_fill_distiller(palette = 'RdPu', direction =1)
 ```
 
