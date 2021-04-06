@@ -4,8 +4,8 @@ author: "Gutman Abigail & Shalom Shahar"
 date: "22 3 2021"
 output: html_document
 ---
-#הורדת ספריות 
-```{r setup, include=FALSE}
+
+```{r setup, include=FALSE, message=F}
 # tools and data upload
 library(ggplot2)
 library(dplyr)
@@ -26,6 +26,9 @@ library(hexbin)
 library(usmap)
 library(rgdal)
 library(ggiraph)
+library(nullabor)
+library(wesanderson)
+library(viridis)
 ```
 
 ```{r}
@@ -95,27 +98,27 @@ planes <- nycflights13::planes
 # long_dist <- flights %>% filter(distance > 2000)
 ```
 
-# **1 Graph Critique**
-### Q1:
+# **1. Graph Critique**
+### Question 1:
 The first graph shows us the percentage of flights that departed over a 15-minute delay divided into each destination individually.
 The purpose of this graph is to make the reader's eye quickly find the percentage of flights based on a visualization of the United States map.
 
 The second graph shows the weekly flight cycles throughout 2008 where the blue line indicates the total number of flights that took off that day and the red line indicates the number of flights in which there was a delay of over 15 minutes.
 
-### Q2:
+### Question 2:
 In the first graph the information is not presented in an ideal way, it is difficult for the reader to identify where each line is coming from, although it is possible to understand which countries it is but it is not always possible to identify exactly which airport it is.
 
 In the second graph, in our opinion, the amount of lines and points confuses the reader and makes it difficult for him to identify the patterns of flight delays throughout the seasons.
 In addition, the information overload makes it difficult to identify recurring latency patterns on certain days for the length of the weekly / monthly cycle.
 
-### Q3:
+### Question 3:
 The first graph raises the obvious question: Are there countries where the average latency is higher than in other countries? In addition, which are the airports where the percentage of delays is higher?
 Another question is whether the percentages of delay measured vary according to the seasons?
 
 The second graph raises the questions: Are there patterns of lateness that recur on certain days of the week or in a particular season, or are there lateness in some months than in other months?
 In addition, if the observation was lower by day / month, it would be possible to compare percentages and learn from the data by comparing proportions.
 
-### Q4:
+### Question 4:
 The first graph can be improved by changing the graph to a dynamic graph. This means that when the mouse points to a certain line, we will be presented with the values of the airport we are pointing to.
 
 In the second graph it was possible to improve the visualization by changing the red bars to a long line connecting the dots which makes it possible to identify patterns in the delays of the flights.
@@ -125,7 +128,8 @@ In the second graph it was possible to improve the visualization by changing the
 # **2 Reproducing these analyses**
 
 
-1. A graphic summarizing the flight volume and flights delayed, broken by day and showing weekly cycles.
+### Question 1:
+A graphic summarizing the flight volume and flights delayed, broken by day and showing weekly cycles.
 ```{r fig3, fig.width = 15, fig.asp = .32, warning=F}
 #EWR/ LGA/ JFK to choose
 week_cycles <- as.data.frame(flights) %>% filter(origin == 'EWR') %>% dplyr::select(time_hour ,dep_delay ,sched_dep_time)
@@ -159,19 +163,16 @@ ggplot(data = week_cycles_freq,aes(x = time_hour,
   theme(legend.position="top",legend.direction = "vertical") +
   ggtitle(label = "Weekly Cycles", subtitle = "the airport, we need to choose, Year = 2013") +
   theme(plot.title = element_text(hjust = 0.5,size = 20),plot.subtitle = element_text(hjust = 0.5,size = 15)) 
-
-
 ```
 
-the other graph, flight percent
-```{r}
+
+### Question 2:
+
+The other graph, flight percent
+```{r, message= F, warning= F }
 dep_delay <- as.data.frame(flights) %>% filter(origin == 'EWR') %>%
   mutate(delay = if_else(dep_delay <= 15 ,0,1,0)) %>% group_by(faa = dest) %>% summarise(amount = (frequency = n()), dep = sum(delay)) %>% mutate(per = dep/amount)
 
-```
-
-
-```{r}
 dep_delay_loc <- dep_delay %>% left_join(airports, by = "faa") %>% drop_na()
 # removed : STT,SJU, BQN need to be explain why they can be found.
 dep_delay_loc <- dep_delay_loc %>% mutate(per_ch = NA)
@@ -183,17 +184,9 @@ dep_delay_loc$per_ch[dep_delay_loc$per >= 0.25] <- "25% <="
 dep_delay_loc$per_ch <- factor(dep_delay_loc$per_ch, levels = c("<= 10%","10% - 15%",
                                                          "15% - 20%","20% - 25%","25% <="))
 
-
 ```
 
-```{r}
-
-
-
-```
-
-```{r}
-
+```{r, message=F, warning=F}
 dep_delay_loc <- dep_delay_loc %>% mutate(nyc_EWR_lon = -74.16867) %>% mutate(nyc_EWR_lat = 40.6925 )
 dep_delay_trans <- dep_delay_loc %>% select(lon,lat) %>% usmap_transform()
 dep_delay_loc$lon <- dep_delay_trans$lon.1
@@ -204,9 +197,6 @@ dep_delay_loc$lnyc_EWR_lon <- dep_delay_trans$nyc_EWR_lon.1
 dep_delay_loc$lnyc_EWR_lat <- dep_delay_trans$nyc_EWR_lat.1
 row.names(dep_delay_loc) <- dep_delay_loc$name
 
-
-
-
 plot_del <- plot_usmap(regions = "states",labels = TRUE,exclude =  c("AK","HI"), size = 0.5,
            label_color = "grey",
            color = "grey") + 
@@ -216,23 +206,16 @@ plot_del <- plot_usmap(regions = "states",labels = TRUE,exclude =  c("AK","HI"),
   geom_point(data = dep_delay_loc, aes(x = lon , y = lat, colour =  per_ch, text = row.names(dep_delay_loc)),
              size = 0.5, show.legend = F) +
   scale_color_manual(name = "",values = c("green","purple","blue","orange","red"),
-                     guide =  guide_legend(override.aes = list(linetype = c(1, 1, 1,1,1),
-                                                               size = c(1.5,1.5,1.5,1.5,1.5)))) +
-    labs(title = '<b>% of Flight Departures Delayed > 15 Min</b><br> Airport = EWR Year = 2013',
-         caption = "Click line endpoint to see that airport departures") +
+                     guide =  guide_legend(override.aes = list(linetype = c(1, 1, 1,1,1), 
+                                          size = c(1.5,1.5,1.5,1.5,1.5))))+
+    labs(title = '<b>% of Flight Departures Delayed > 15 Min</b><br> Airport = EWR Year = 2013', caption = "Click line endpoint to see that airport departures") +
       theme(plot.title = element_text(hjust = 0.5,size = 13),
           plot.subtitle = element_text(hjust = 0.5,size = 10))
 
-
-
-
 ggplotly(plot_del, tooltip = "text") %>% layout(legend = list(x = 0, y = 0))
-
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
-
 
 
 # **3. Freestyle analysis:**
@@ -251,6 +234,8 @@ ggplot(data = visib_df, mapping = aes(x = visib, y = Avg_dep_delay)) + geom_poin
   labs(x = "visibility", y="Average Departure Delay Time (minutes)", 
        title = "Average Departure Delay vs. Quality of visibility")
 ```
+
+
 When we tried to think what was the main reason for the delay of flights the first thing that came to our mind was the weather conditions.
 When we studied the weather database we noticed a variable called "visib" and decided to try to understand the relationship between visibility and flight delays.
 The graph shown above shows a direct relationship between the quality of visibility and the average flight delay in minutes. The better the visibility, the smaller the average delays.
@@ -277,39 +262,50 @@ flights_delayed_plane <- filter(flights_delayed_plane, n >30)
 
 
 
-
-
 # **4. Graphical Lineup:**
 
-לצבוע יפה את הגרפים החמודים שלי 
-```{r}
-# flights_delayed$month <- as.character.numeric_version(flights_delayed$month)
 
-ggplot(data = flights_delayed, mapping = aes(x = day)) +
-  geom_bar()+ facet_wrap(~month)
+### Question 1:
+```{r}
+#Creat a plot that shows the distribution of the delayed flights in each day of every month 
+ggplot(data = flights_delayed, aes(x = day)) +
+  geom_bar(aes(fill = month))+ facet_wrap(~month) + 
+  labs(title  = "Distribution of delayed flight in each month",
+       subtitle = "(Delayed flights are set to be flights that left the airport with over 15 minutes delay)", y = "Count of delayed flight", x = "Day") + scale_fill_viridis_c(guide = F)
 ```
 
 
-לעשות אותו חתיך 
+### Question 2:
 ```{r, message=F}
+#First' we created a df that containes only the data that we need 
 by_month <- flights_delayed %>% group_by(month) %>% summarise(val = n_distinct(dep_delay))
-by_month <- data.frame(by_month, semp = c(1,1,1,1,1,1,1,1,1,1,1,1))
+by_month <- data.frame(by_month, semp = c(rep(1,12))) #named the real data as sample 1.
 
 sampled_df <- by_month
 row.names(sampled_df) <- by_month$month
 
+#loop that sample new vecrots and tag the sample with number
+#also each sample will merged to the data that containes the real values. 
 for (i in (2:12)){
-  x <- data.frame(month = c(1,2,3,4,5,6,7,8,9,10,11,12), semp = c(i,i,i,i,i,i,i,i,i,i,i,i),val = sample(by_month$val))
+  x <- data.frame(month = c(1:12), semp = c(rep(i,12)),val = sample(by_month$val))
   sampled_df <- full_join(sampled_df, x)
 }
 
-
-plot_df <- sampled_df
-#plot_df$month <- as.character.numeric_version(plot_df$month)
-
-
-ggplot(data = plot_df, mapping = aes(x  = month, y = val)) + facet_wrap(~semp) + scale_x_continuous(breaks = c(1:12)) +geom_bar(stat="identity")
-
-
+#plot all of the samples in the Line-up method
+# we added colors that will help us identify the pattern of the values. 
+ggplot(data = sampled_df, mapping = aes(x  = month, y = val, fill = val)) + facet_wrap(~semp) +
+  scale_x_continuous(breaks = c(1:12)) +
+  geom_bar(stat="identity") + 
+  labs(title  = "Simulated data-sets of delayed flight using line-up",
+       subtitle = "(Delayed flights are set to be flights that left the airport with over 15 minutes delay)", y = "Count of delayed flight", x = "Month")+
+   theme(axis.text.x = element_text(size = 6)) +
+  scale_fill_distiller(palette = 'RdPu', direction =1)
 ```
+
+
+### Question 3:
+
+BLA BLA BLA 
+
+
 
