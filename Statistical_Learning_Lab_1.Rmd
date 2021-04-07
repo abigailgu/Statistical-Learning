@@ -3,8 +3,8 @@ title: "Statistical Learning and Data Analysis 2021 - 52525"
 author: 'Abigail Gutman and Shahar Shalom '
 date: "22/3/2021"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 subtitle: Lab 1 - Flights data
 ---
 
@@ -18,11 +18,6 @@ library(tidyverse)
 library(ggthemes)
 library(datasets)
 library(nycflights13)
-library(kableExtra) #table styling
-library(e1071) # kurtosis and skeeness
-library(MASS) # reg modeling
-library(corrplot)
-library(caTools)
 library(plotly)
 library(lubridate)
 library(hexbin)
@@ -33,6 +28,8 @@ library(wesanderson)
 library(viridis)
 library(gridExtra)
 library(grid)
+library(cowplot)
+library(caTools)
 ```
 
 ```{r, warning=FALSE}
@@ -41,6 +38,7 @@ flights <- as.data.frame(nycflights13::flights)
 wheather <- nycflights13::weather
 airports <- nycflights13::airports
 planes <- nycflights13::planes
+Sys.setlocale("LC_ALL", "English")
 ```
 
 # **1. Graph Critique**
@@ -94,11 +92,11 @@ p <- ggplot(data = week_cycles_freq,aes(x = time_hour,
   geom_point() + geom_line(aes(color = "blue")) +
   geom_point(data = week_cycles_delay,aes(x=time_hour,y= `sum(delay)`, color ='red')) +
   geom_linerange(data = week_cycles_delay,aes(x= time_hour, ymax =`sum(delay)` ,ymin=0),color = 'red') +
-  geom_point(data = week_cycles_min,aes(x=time_hour,y=week_cycles_min$frequency, color = "lightblue"),size = 7)+
-  scale_color_identity(name ="" ,breaks = c("blue","red", "lightblue"),
+  geom_point(data = week_cycles_min,aes(x=time_hour,y=week_cycles_min$frequency, color = "royalblue2"),size = 7)+
+  scale_color_identity(name ="" ,breaks = c("blue","red"),
                        labels = c("All Flights (scheculed for departure)", 
-                                  "Late Flights (departure delayed >15)", "Fewer flights on holidays"),
-                          guide =  guide_legend(override.aes = list(linetype = c(1, 1, 0), shape =                                                        c(16,16,16),size = c(1,1,7)))) + 
+                                  "Late Flights (departure delayed >15)"),
+                          guide =  guide_legend(override.aes = list(linetype = c(1, 1), shape =                                                        c(16,16),size = c(1,1))))+
   theme_light()  +
   xlab("")+ ylab("Flights  \n per day") +
   xlim(as.Date(c("2013-01-01","2014-01-01")))+  ylim(c(0, 400)) +
@@ -106,15 +104,23 @@ p <- ggplot(data = week_cycles_freq,aes(x = time_hour,
   scale_x_date(date_labels = "%d%b%Y", date_breaks = "1 month",expand = c(0,0)) + 
   theme(legend.position="top",legend.direction = "vertical") +
   ggtitle(label = "Weekly Cycles", subtitle = "the airport = EWR   Year = 2013") +
-  theme(plot.title = element_text(hjust = 0.5,size = 20),
-        plot.subtitle = element_text(hjust = 0.5,size = 15))
+  theme(plot.title = element_text(hjust = 0.5,size = 20, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5,size = 15, face = "bold"),
+        legend.text=element_text(size=12,face = "bold"))
 
-tab <- as.data.frame(
-  c("<b>\n WEEKLY CYCLES  \n FEW FLIGHTS: SUNDAYS AND SATURDAYS \n MOST FLIGHTS: MONDAYS, THURSDAYS \n AND FRIDAYS"))
-g <- textGrob("\n\n WEEKLY CYCLES  \n FEW FLIGHTS: \n SUNDAYS AND SATURDAYS \n
-              MOST FLIGHTS: \n MONDAYS, THURSDAYS \n AND FRIDAYS", gp=gpar(fontsize=13,font=1))
-grid.arrange(g, p, layout_matrix = matrix(c(1,2,2, 2, 2), ncol = 5),
-             top = textGrob("      TEMPORAL EFFECTS", gp=gpar(fontsize=30,font=1)))
+
+
+d <- get_legend(p + scale_color_identity(name ="\n\n WEEKLY CYCLES  \n FEW FLIGHTS: \n SUNDAYS AND SATURDAYS \n MOST FLIGHTS: \n  MONDAYS, THURSDAYS \n AND FRIDAYS" ,
+                                         breaks = c("royalblue2"), labels = c("Fewer flights on holidays"),
+                          guide =  guide_legend(override.aes = list(linetype = c(0), shape =                                                        c(16),size = c(7)))) +
+                  theme(legend.text=element_text(size=12, face = "bold"),
+                        legend.title=element_text(size=12, face = "bold")))
+
+
+
+grid.arrange(d, p, layout_matrix = matrix(c(1,2,2, 2, 2), ncol = 5),
+             top = textGrob("   TEMPORAL EFFECTS",
+                            gp=gpar(fontsize=45, col = "royalblue2", fontface = 2)))
 ```
 
 
@@ -138,9 +144,9 @@ dep_delay_loc$per_ch[dep_delay_loc$per <= 0.10 ] <- "<= 10%"
 dep_delay_loc$per_ch[dep_delay_loc$per <= 0.15 & dep_delay_loc$per > 0.10 ] <- "10% - 15%"
 dep_delay_loc$per_ch[dep_delay_loc$per <= 0.20 & dep_delay_loc$per > 0.15 ] <- "15% - 20%"
 dep_delay_loc$per_ch[dep_delay_loc$per <= 0.25 & dep_delay_loc$per > 0.20 ] <- "20% - 25%"
-dep_delay_loc$per_ch[dep_delay_loc$per >= 0.25] <- "25% <="
+dep_delay_loc$per_ch[dep_delay_loc$per >= 0.25] <- " > 25%"
 dep_delay_loc$per_ch <- factor(dep_delay_loc$per_ch, levels = c("<= 10%","10% - 15%",
-                                                         "15% - 20%","20% - 25%","25% <="))
+                                                         "15% - 20%","20% - 25%"," > 25%"))
 ```
 
 ```{r, message=FALSE, warning=FALSE}
@@ -167,21 +173,19 @@ plot_del <- plot_usmap(regions = "states",labels = TRUE,exclude =  c("AK","HI"),
   geom_segment(data = dep_delay_loc,
                aes(xend = lon,yend = lat, x = lnyc_EWR_lon,
                                          y = lnyc_EWR_lat ,colour = per_ch),size = 0.5) + 
-  geom_point(data = dep_delay_loc,
+  geom_point(data = dep_delay_loc, shape = 1,
              aes(x = lon , y = lat, colour =  per_ch,
                  text = row.names(dep_delay_loc)),
-             size = 0.5, show.legend = F) +
+             size = 1.25, show.legend = F) +
   scale_color_manual(name = "",
                      values = c("green","purple","blue","orange","red"),
                      guide =  guide_legend(override.aes = list(linetype = c(1, 1, 1,1,1), 
                                           size = c(2,2,2,2,2))))+
-    labs(title = '<b>% of Flight Departures Delayed > 15 Min</b><br> Airport = JFK Year = 2013<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br> Click line endpoint to see that airports departures') +
+    labs(title = '<b>% of Flight Departures Delayed > 15 Min</b><br> Airport = JFK Year = 2013<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>Click line endpoint to see that airports departures') +
       theme(plot.title = element_text(hjust = 0.5,size = 12))
 
-plot_del$x$data[[1]]$hoverinfo <- "none"
-plot_del$y$data[[1]]$hoverinfo <- "none"
 
-ggplotly(plot_del, tooltip = "text") %>% layout(legend = list(x = 0, y = 0))
+ggplotly(plot_del, tooltip = "text") %>% layout(legend = list(x = -0.1, y = -0.1))
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
