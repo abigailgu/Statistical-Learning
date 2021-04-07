@@ -188,7 +188,10 @@ flights_delayed1 <- flights_delayed %>%  group_by(time_hour) %>% summarise(Avg_d
 
 Wheather_cond <- left_join(flights_delayed1, wheather) #combine the two relevant data frames 
 
-visib_df <- Wheather_cond %>% group_by(visib) %>% summarise(Avg_dep_delay = mean(Avg_dep_delay, na.rm = T))
+#aggregate the data so we can see the conection between visib to avg sep delay.
+visib_df <- Wheather_cond %>% group_by(visib) %>% summarise(Avg_dep_delay = mean(Avg_dep_delay, na.rm = T), n = n())
+visib_df <- visib_df %>% filter(n > 30)
+
 
 ggplot(data = visib_df, mapping = aes(x = visib, y = Avg_dep_delay)) + geom_point(color = "violetred4") + 
   geom_smooth(method = "lm", fill = "violet", color = "violetred4") +
@@ -196,29 +199,35 @@ ggplot(data = visib_df, mapping = aes(x = visib, y = Avg_dep_delay)) + geom_poin
        title = "Average Departure Delay vs. Quality of visibility")
 ```
 
-
 When we tried to think what was the main reason for the delay of flights the first thing that came to our mind was the weather conditions.
 When we studied the weather database we noticed a variable called "visib" and decided to try to understand the relationship between visibility and flight delays.
 The graph shown above shows a direct relationship between the quality of visibility and the average flight delay in minutes. The better the visibility, the smaller the average delays.
 
 
+```{r, warning=F, message=F}
+#As before we summarise the average delay, only this time we compare it to the wind speed.   
+by_wind_speed <- Wheather_cond %>% group_by(wind_speed) %>% summarise(Avg_dep_delay = mean(Avg_dep_delay, na.rm = T), n = n())
+#we filtered average values of less then 30 samples. 
+by_wind_speed <-  filter(by_wind_speed, n>30)
 
-The second graph
 
-
-מה לעזאזאל אני רואה פה ?!?!?!?!?!? 
-```{r, message=F}
-by_hour <- flights_delayed  %>% group_by(hour) %>% summarise(Avg_dep_delay = mean(dep_delay, na.rm = T))  
-
-ggplot(data = by_hour, mapping = aes(x = hour, y = Avg_dep_delay)) + geom_point(color = "dodgerblue4") + geom_smooth(method = "lm", fill = "deepskyblue", color = "dodgerblue4") +
-  labs(x = "Hour", y="Average Departure Delay Time (minutes)", 
-       title = "Average Departure Delay vs. Hour") + ylim(c(45,75))
+ggplot(data = by_wind_speed, mapping = aes(x = wind_speed, y = Avg_dep_delay)) + geom_point(color = "dodgerblue4") + 
+  geom_smooth(method = "lm", fill = "deepskyblue", color = "dodgerblue4") +
+  labs(x = "Wind_speed (mph)", y="Average Departure Delay Time (minutes)", 
+       title = "Average Departure Delay vs. Wind speed")
 ```
+
+The second graph shows us another interesting relationship between the weather and the average of flight delays.
+In the graph above it we can see positive linear conection between the wind speed and the average flight delay in minutes. 
+As the wind speed increases the delay time of the flight also increases.
+
+
 
 
 # **4. Graphical Lineup:**
 
 ### Question 1:
+
 ```{r}
 #Creat a plot that shows the distribution of the delayed flights in each day of every month 
 ggplot(data = flights_delayed, aes(x = day)) +
@@ -227,8 +236,20 @@ ggplot(data = flights_delayed, aes(x = day)) +
        subtitle = "(Delayed flights are set to be flights that left the airport with over 15 minutes delay)", y = "Count of delayed flight", x = "Day") + scale_fill_viridis_c(guide = F)
 ```
 
+In this question we were asked to produce a graph which answers the question: Is the proportion of delayed flights per month is independent across months. 
+To this end, we have created a graph that shows for each month the distribution of flights that have been delayed for more than 15 minutes.
+
+After thoroughly researching the graph findings we came to the conclusion that there is no relationship between the distribution of the delayed flights.
+
+As a result of this conclusion it can be said that for these graphs we will not reject the null hypothesis. 
+
 
 ### Question 2:
+
+Before you read the code, stop!
+Try to think which of the graphs you see below shows the true distribution of the number of flights that were delayed each month?
+
+
 ```{r, message=F}
 #First' we created a df that containes only the data that we need 
 by_month <- flights_delayed %>% group_by(month) %>% summarise(val = n())
@@ -250,15 +271,30 @@ ggplot(data = sampled_df, mapping = aes(x  = month, y = val, fill = val)) + face
   scale_x_continuous(breaks = c(1:12)) +
   geom_bar(stat="identity") + 
   labs(title  = "Simulated data-sets of delayed flight using line-up",
-       subtitle = "(Delayed flights are set to be flights that left the airport with over 15 minutes delay)", y = "Count of delayed flight", x = "Month")+
+       subtitle = "(Delayed flights are set to be flights that left the airport with over 15 minutes delay)", y = "Numbers of delayed flight", x = "Month")+
    theme(axis.text.x = element_text(size = 8)) +
   scale_fill_distiller(palette = 'RdPu', direction =1)
 ```
 
 
+In this question we were again asked to try to reject the null hypothesis but this time by creating graphs which are based on simulations of the data. 
+
+To do this we first checked the number of flights delayed each month.
+After that we created a vector that represent this values. 
+The next step was to create simulation based on this values. we created a graph for every simulation and tries to see if there is any connection between all of this semples. 
+
+So what are you thinking ? Which of the graphs above is the one that shows the real data distribution? 
+The real data is displayed in graph number ..... 1!
+
+ 
 ### Question 3:
 
-BLA BLA BLA 
+While we created the graph above we choose to mach colors for each bar that represent the numbers of delayed flights, small number will be represented with lighter colors and larger numbers with darker colors. As we can see in sapmle 1 that represent the real values there is a certain trend between the months, the transition between the colors of the bars is an easy transition in most cases.
+There is an upward trend and there is also a downward trend.
 
+When we look at the other graphs that represent the simulations we fail to notice a similar trend in any of the graphs.
+As a result we can say that there is a connection between the months so again we come to the conclusion that the null hypothesis cannot be rejected.
+
+Finally, we learned that one can learn about relationships between variables not necessarily with the help of formulas and numbers. Visual objects can also provide us with a great deal of statistical information.
 
 
