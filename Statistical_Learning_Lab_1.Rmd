@@ -28,6 +28,7 @@ library(rgdal)
 library(ggiraph)
 library(wesanderson)
 library(viridis)
+library(gridExtra)
 ```
 
 ```{r}
@@ -72,7 +73,7 @@ A graphic summarizing the flight volume and flights delayed, broken by day and s
 ```{r fig3, fig.width = 15, fig.asp = .32, warning=F}
 #EWR/ LGA/ JFK to choose
 week_cycles <- as.data.frame(flights) %>% filter(origin == 'EWR') %>% dplyr::select(time_hour ,dep_delay ,sched_dep_time)
-week_cycles$time_hour <- as.Date(week_cycles$time_hour)
+week_cycles$time_hour <- as.Date(week_cycles$time_hour,'ddmmmyyyy')
 week_cycles<- week_cycles %>% mutate(delay = if_else(dep_delay <= 15 ,0,1,0))
 
 
@@ -80,26 +81,40 @@ week_cycles_freq <- week_cycles %>% group_by(time_hour) %>% summarise(frequency 
 week_cycles_delay <- week_cycles %>% group_by(time_hour) %>% summarise(sum(delay))
 l <- length(week_cycles_freq$frequency)
 week_cycles_min <- week_cycles_freq[c(2:(l-1)),]
-week_cycles_min <- week_cycles_min %>% mutate(local_min = (week_cycles_min$frequency == runmin(week_cycles_min$frequency,length(week_cycles_min$frequency)/2)))  
+week_cycles_min <- week_cycles_min %>% mutate(local_min = (week_cycles_min$frequency == runmin(week_cycles_min$frequency,length(week_cycles_min$frequency)/1.3)))  
 week_cycles_min <- week_cycles_min %>% filter(local_min == T) %>% filter(frequency < 250)
 
 
-ggplot(data = week_cycles_freq,aes(x = time_hour,
+p <- ggplot(data = week_cycles_freq,aes(x = time_hour,
                                    y= week_cycles_freq$frequency,colour = "blue")) +
   geom_point() + geom_line(aes(color = "blue")) +
-  geom_point(data = week_cycles_delay,aes(x=time_hour,y= `sum(delay)`), color ='red') +
-  geom_linerange(data = week_cycles_delay,aes(x= time_hour, ymax =`sum(delay)` ,ymin=0,color = 'red')) +
+  geom_point(data = week_cycles_delay,aes(x=time_hour,y= `sum(delay)`, color ='red')) +
+  geom_linerange(data = week_cycles_delay,aes(x= time_hour, ymax =`sum(delay)` ,ymin=0),color = 'red') +
   geom_point(data = week_cycles_min,aes(x=time_hour,y=week_cycles_min$frequency,
                                         color = "lightblue"),size = 7)+
     scale_color_identity(name ="" ,breaks = c("blue","red", "lightblue"),
                        labels = c("All Flights (scheculed for departure)",
-                                  "Late Flights (departure delayed >15)", "Fewer Flights"),
+                                  "Late Flights (departure delayed >15)", "Fewer flights on holidays"),
                           guide =  guide_legend(override.aes = list(linetype = c(1, 1, 0), shape =                                                        c(16,16,16),size = c(1,1,7)))) + 
   theme_light()  +
-  xlab("Date")+ ylab("Flights per day") +
+  xlab("")+ ylab("Flights  \n per day") +
+  xlim(as.Date(c("2013-01-01","2014-01-01")))+  ylim(c(0, 400)) +
+  theme(axis.title.y = element_text(angle = 0, vjust = 1.1, hjust = 10)) +
+  scale_x_date(date_labels = "%d%b%Y", date_breaks = "1 month",expand = c(0,0)) + 
   theme(legend.position="top",legend.direction = "vertical") +
-  ggtitle(label = "Weekly Cycles", subtitle = "the airport, we need to choose, Year = 2013") +
-  theme(plot.title = element_text(hjust = 0.5,size = 20),plot.subtitle = element_text(hjust = 0.5,size = 15)) 
+  ggtitle(label = "Weekly Cycles", subtitle = "the airport = EWR   Year = 2013") +
+  theme(plot.title = element_text(hjust = 0.5,size = 20),
+        plot.subtitle = element_text(hjust = 0.5,size = 15))
+
+tab <- as.data.frame(
+  c("<b>\n WEEKLY CYCLES  \n FEW FLIGHTS: SUNDAYS AND SATURDAYS \n MOST FLIGHTS: MONDAYS, THURSDAYS \n AND FRIDAYS"
+  )
+)
+g <- textGrob("\n\n WEEKLY CYCLES  \n FEW FLIGHTS: \n SUNDAYS AND SATURDAYS \n
+              MOST FLIGHTS: \n MONDAYS, THURSDAYS \n AND FRIDAYS", gp=gpar(fontsize=13,font=1))
+grid.arrange(g, p,
+             layout_matrix = matrix(c(1,2,2, 2, 2), ncol = 5),
+             top = textGrob("      TEMPORAL EFFECTS", gp=gpar(fontsize=30,font=1)))
 
 ```
 
