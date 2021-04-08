@@ -8,7 +8,7 @@ output:
 subtitle: Lab 1 - Flights data
 ---
 
-```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+```{r setup, include=FALSE, message=FALSE, warning=FALSE,echo=FALSE}
 # tools and data upload
 library(ggplot2)
 library(dplyr)
@@ -32,7 +32,8 @@ library(cowplot)
 library(caTools)
 ```
 
-```{r, warning=FALSE}
+```{r, warning=FALSE,echo=FALSE,message=FALSE,include = FALSE}
+#flights data frames
 options(scipen = 999)
 flights <- as.data.frame(nycflights13::flights)
 wheather <- nycflights13::weather
@@ -72,21 +73,24 @@ In the second graph it was possible to improve the visualization by changing the
 
 ### Question 1:
 A graphic summarizing the flight volume and flights delayed, broken by day and showing weekly cycles.
-```{r fig3, fig.width = 15, fig.asp = .32, warning=FALSE, message=FALSE}
-#EWR/ LGA/ JFK to choose
+```{r fig3, fig.width = 15, fig.asp = .32, warning=FALSE, message=FALSE,echo=FALSE}
+
+# arrange data by origion
 week_cycles <- as.data.frame(flights) %>% filter(origin == 'EWR') %>% dplyr::select(time_hour ,dep_delay ,sched_dep_time)
-week_cycles$time_hour <- as.Date(week_cycles$time_hour,'ddmmmyyyy')
-week_cycles<- week_cycles %>% mutate(delay = if_else(dep_delay <= 15 ,0,1,0))
+week_cycles$time_hour <- as.Date(week_cycles$time_hour,'ddmmmyyyy') # Date type
+week_cycles<- week_cycles %>% mutate(delay = if_else(dep_delay <= 15 ,0,1,0))  # dammy vector for delay
 
-
+# count flights & flights with delay
 week_cycles_freq <- week_cycles %>% group_by(time_hour) %>% summarise(frequency = n())
 week_cycles_delay <- week_cycles %>% group_by(time_hour) %>% summarise(sum(delay))
 l <- length(week_cycles_freq$frequency)
 week_cycles_min <- week_cycles_freq[c(2:(l-1)),]
+
+#fewer flights due to hoidays
 week_cycles_min <- week_cycles_min %>% mutate(local_min = (week_cycles_min$frequency == runmin(week_cycles_min$frequency,length(week_cycles_min$frequency)/1.3)))  
 week_cycles_min <- week_cycles_min %>% filter(local_min == T) %>% filter(frequency < 250)
 
-
+#plot by date
 p <- ggplot(data = week_cycles_freq,aes(x = time_hour,
                                    y= week_cycles_freq$frequency,colour = "blue")) +
   geom_point() + geom_line(aes(color = "blue")) +
@@ -96,7 +100,9 @@ p <- ggplot(data = week_cycles_freq,aes(x = time_hour,
   scale_color_identity(name ="" ,breaks = c("blue","red"),
                        labels = c("All Flights (scheculed for departure)", 
                                   "Late Flights (departure delayed >15)"),
-                          guide =  guide_legend(override.aes = list(linetype = c(1, 1), shape =                                                        c(16,16),size = c(1,1))))+
+                          guide =  guide_legend(override.aes = list(linetype = c(2, 2),
+                                                                    shape =c(NA,NA),
+                                                                    size = c(1,1)), keywidth=c(2,2)))+
   theme_light()  +
   xlab("")+ ylab("Flights  \n per day") +
   xlim(as.Date(c("2013-01-01","2014-01-01")))+  ylim(c(0, 400)) +
@@ -109,7 +115,7 @@ p <- ggplot(data = week_cycles_freq,aes(x = time_hour,
         legend.text=element_text(size=12,face = "bold"))
 
 
-
+# add anther legend for fewer flights
 d <- get_legend(p + scale_color_identity(name ="\n\n WEEKLY CYCLES  \n FEW FLIGHTS: \n SUNDAYS AND SATURDAYS \n MOST FLIGHTS: \n  MONDAYS, THURSDAYS \n AND FRIDAYS" ,
                                          breaks = c("royalblue2"), labels = c("Fewer flights on holidays"),
                           guide =  guide_legend(override.aes = list(linetype = c(0), shape =                                                        c(16),size = c(7)))) +
@@ -117,7 +123,7 @@ d <- get_legend(p + scale_color_identity(name ="\n\n WEEKLY CYCLES  \n FEW FLIGH
                         legend.title=element_text(size=12, face = "bold")))
 
 
-
+# arrange all plots together by grid
 grid.arrange(d, p, layout_matrix = matrix(c(1,2,2, 2, 2), ncol = 5),
              top = textGrob("   TEMPORAL EFFECTS",
                             gp=gpar(fontsize=45, col = "royalblue2", fontface = 2)))
@@ -126,8 +132,10 @@ grid.arrange(d, p, layout_matrix = matrix(c(1,2,2, 2, 2), ncol = 5),
 
 ### Question 2:
 
-The other graph, flight percent
-```{r, message= FALSE, warning= FALSE }
+Second flights : percent of delayed flights (over 15 min) departing from JFK for each destination.
+```{r, message= FALSE, warning= FALSE,echo=FALSE }
+
+#arrange data and counting the sum flights and the delayed flights from JFK
 dep_delay <- as.data.frame(flights) %>% filter(origin == 'JFK') %>% group_by(dest) %>%
   count()
 colnames(dep_delay) <-c("faa", "amount")
@@ -135,8 +143,9 @@ colnames(dep_delay) <-c("faa", "amount")
 dep_delay2 <- as.data.frame(flights) %>% filter(origin == 'JFK') %>% group_by(dest) %>% filter(dep_delay >15) %>%   count()
 colnames(dep_delay2) <- c("faa","delay")
 
-dep_delay <- dep_delay %>% left_join(dep_delay2) %>% mutate(per = delay/ amount)
 
+#percent calculate
+dep_delay <- dep_delay %>% left_join(dep_delay2) %>% mutate(per = delay/ amount)
 dep_delay_loc <- dep_delay %>% left_join(airports, by = "faa") %>% drop_na()
 # removed : STT,SJU, BQN need to be explain why they can be found.
 dep_delay_loc <- dep_delay_loc %>% mutate(per_ch = NA)
@@ -149,13 +158,15 @@ dep_delay_loc$per_ch <- factor(dep_delay_loc$per_ch, levels = c("<= 10%","10% - 
                                                          "15% - 20%","20% - 25%"," > 25%"))
 ```
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE,echo=FALSE}
+
+#start point vectors for lon,lat
 dep_delay_loc <- dep_delay_loc %>% mutate(nyc_EWR_lon = -74.16867) %>%
   mutate(nyc_EWR_lat = 40.6925 )
 
-
 dep_delay_loc <- as.data.frame(dep_delay_loc)
 
+#transform the data to match the usmap package
 dep_delay_trans <- dep_delay_loc %>%
   select(lon,lat) %>% usmap_transform()
 dep_delay_loc$lon <- dep_delay_trans$lon.1
@@ -166,6 +177,8 @@ dep_delay_loc$lnyc_EWR_lon <- dep_delay_trans$nyc_EWR_lon.1
 dep_delay_loc$lnyc_EWR_lat <- dep_delay_trans$nyc_EWR_lat.1
 row.names(dep_delay_loc) <- dep_delay_loc$name
 
+
+#ploting ggplot + usmap layers
 plot_del <- plot_usmap(regions = "states",labels = TRUE,exclude =  c("AK","HI"), size = 0.5,
            label_color = "grey",
            color = "grey") + 
@@ -184,7 +197,7 @@ plot_del <- plot_usmap(regions = "states",labels = TRUE,exclude =  c("AK","HI"),
     labs(title = '<b>% of Flight Departures Delayed > 15 Min</b><br> Airport = JFK Year = 2013<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>Click line endpoint to see that airports departures') +
       theme(plot.title = element_text(hjust = 0.5,size = 12))
 
-
+# using plotly for interactive layer (ports names)
 ggplotly(plot_del, tooltip = "text") %>% layout(legend = list(x = -0.1, y = -0.1))
 ```
 
@@ -194,7 +207,7 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 # **3. Freestyle analysis:**
 
 The first graph shows the relationship between visibility and flight delays.
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE,echo=FALSE}
 flights_delayed <- filter(flights, dep_delay >15 ) #We want to see only the delayed flights 
 flights_delayed1 <- flights_delayed %>%  group_by(time_hour) %>% summarise(Avg_dep_delay = mean(dep_delay))
 
@@ -214,8 +227,8 @@ When we studied the weather database we noticed a variable called "visib" and de
 The graph shown above shows a direct relationship between the quality of visibility and the average flight delay in minutes. The better the visibility, the smaller the average delays.
 
 
-```{r, warning=FALSE, message=FALSE}
-#As before we summarise the average delay, only this time we compare it to the wind speed.   
+```{r, warning=FALSE, message=FALSE,echo=FALSE}
+#As before we summarize the average delay, only this time we compare it to the wind speed.   
 by_wind_speed <- Wheather_cond %>% group_by(wind_speed) %>% summarise(Avg_dep_delay = mean(Avg_dep_delay, na.rm = T), n = n())
 #we filtered average values of less then 30 samples. 
 by_wind_speed <-  filter(by_wind_speed, n>30)
@@ -241,7 +254,7 @@ Our null hypothesis is:
 
 ### Question 1:
 
-```{r, warning=FALSE}
+```{r, warning=FALSE,echo=FALSE}
 #Creat a plot that shows the distribution of the delayed flights in each day of every month 
 ggplot(data = flights_delayed, aes(x = day)) +
   geom_bar(aes(fill = month))+ facet_wrap(~month) + 
@@ -263,7 +276,7 @@ stop!
 Try to think which of the graphs you see below shows the true distribution of the number of flights that were delayed each month?
 
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE,echo=FALSE}
 #First' we created a df that containes only the data that we need 
 by_month <- flights_delayed %>% group_by(month) %>% summarise(val = n())
 by_month <- data.frame(by_month, semp = c(rep(1,12))) #named the real data as sample 1.
