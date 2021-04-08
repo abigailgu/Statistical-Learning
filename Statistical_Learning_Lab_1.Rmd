@@ -234,6 +234,11 @@ As the wind speed increases the delay time of the flight also increases.
 
 # **4. Graphical Lineup:**
 
+In this question we were asked to check whether delayed-departure has a seasonal pattern using Graphical Lineup.
+Our null hypothesis is:
+- The proportion of delayed flights per month is independent across months.
+
+
 ### Question 1:
 
 ```{r, warning=FALSE}
@@ -249,12 +254,12 @@ To this end, we have created a graph that shows for each month the distribution 
 
 After thoroughly researching the graph findings we came to the conclusion that there is no relationship between the distribution of the delayed flights.
 
-As a result of this conclusion it can be said that for these graphs we will not reject the null hypothesis. 
+As a result of this conclusion we can say that the months are independent of each other and therefore we will reject the null hypothesis. 
 
 
 ### Question 2:
 
-Before you read the code, stop!
+stop!
 Try to think which of the graphs you see below shows the true distribution of the number of flights that were delayed each month?
 
 
@@ -288,9 +293,10 @@ ggplot(data = sampled_df, mapping = aes(x  = month, y = val, fill = val)) + face
 
 In this question we were again asked to try to reject the null hypothesis but this time by creating graphs which are based on simulations of the data. 
 
-To do this we first checked the number of flights delayed each month.
+First, we checked the number of flights delayed each month.
 After that we created a vector that represent this values. 
-The next step was to create simulation based on this values. we created a graph for every simulation and tries to see if there is any connection between all of this semples. 
+The next step was to create simulation based on this values. 
+we created a graph for every simulation and tried to see if there is any connection between all of this samples. 
 
 So what are you thinking ? Which of the graphs above is the one that shows the real data distribution? 
 The real data is displayed in graph number ..... 1!
@@ -298,11 +304,14 @@ The real data is displayed in graph number ..... 1!
  
 ### Question 3:
 
-While we created the graph above we choose to mach colors for each bar that represent the numbers of delayed flights, small number will be represented with lighter colors and larger numbers with darker colors. As we can see in sapmle 1 that represent the real values there is a certain trend between the months, the transition between the colors of the bars is an easy transition in most cases.
-There is an upward trend and there is also a downward trend.
+While we created the graph above we choose to mach colors for each bar that represent the numbers of delayed flights, small number will be represented with lighter colors and larger numbers with darker colors.
+
+As we can see in sample 1 that represent the real values there is a certain trend between the months, the transition between the colors of the bars is an easy transition in most cases.
+There is an upward trend and there is also a downward trend in the real data values. 
 
 When we look at the other graphs that represent the simulations we fail to notice a similar trend in any of the graphs.
-As a result we can say that there is a connection between the months so again we come to the conclusion that the null hypothesis cannot be rejected.
+As a result we can say that the relationship between the months is not a Random relationship and therefore the variance is not Random variance.
+The conclusion is that the months are not independent so we will reject the null hypothesis
 
-Finally, we learned that one can learn about relationships between variables not necessarily with the help of formulas and numbers. Visual objects can also provide us with a great deal of statistical information.
+Finally, we learned that we can learn about relationships between variables not necessarily with the help of formulas and numbers. Visual objects can also provide us with a great deal of statistical information.
 
